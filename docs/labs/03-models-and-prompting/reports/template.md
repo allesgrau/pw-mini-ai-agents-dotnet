@@ -69,7 +69,22 @@ Model: gemma3:4b
 
 Które notatki model najczęściej interpretował błędnie i dlaczego?
 
-(do uzupełnienia)
+Model `gemma3:4b` bez przykładów (zero-shot, EXP-03, EXP-04) mylił się zawsze na tych samych pięciu notatkach:
+
+| Notatka | Treść | Odpowiedź modelu | Oczekiwano | Przyczyna błędu |
+|---------|-------|------------------|------------|-----------------|
+| NOTE-003 | „Parter, wejście od podwórza” | floor=0, elevator=false | floor=0, elevator=null | brak wzmianki o windzie potraktowany jak „brak windy” |
+| NOTE-004 | „IV piętro, lokal 12” | floor=4, elevator=false | floor=4, elevator=null | jak wyżej |
+| NOTE-006 | „Mieszkanie 15, domofon 15” | floor=15, elevator=false | floor=null, elevator=null | jak wyżej i numer mieszkania wzięty za piętro |
+| NOTE-009 | „Drugie lub trzecie piętro” | floor=null, elevator=false | floor=null, elevator=null |  jak wyżej |
+| NOTE-010 | „Winda nie działa, dostawa na 5p” | floor=null, elevator=true | floor=5, elevator=true | nierozpoznany skrót „5p” (choć „2p” w NOTE-002 model odczytał poprawnie) |
+
+Wnioski:
+* Najczęstszy błąd to `false` zamiast `null` dla windy (4 z 5 notatek). Model nie odróżnia „notatka mówi, że windy nie ma” od „notatka nic nie mówi o windzie”.
+* Liczby niebędące piętrem (numer mieszkania, domofonu) model bierze za piętro.
+* Skróty („5p”) są rozpoznawane niestabilnie, zwłaszcza gdy w notatce jest inna informacja na pierwszym planie („winda nie działa”).
+* Przykłady w prompcie usuwają większość tych błędów: one-shot i few-shot poprawiły NOTE-003, 004, 009 i 010. NOTE-006 nadal sprawia trudność w few-shot (floor=15). One-shot z kolei zepsuł wcześniej poprawną notatkę NOTE-008 („brak windy” przeszło w elevator=true).
+
 
 ## Rekomendacja
 
